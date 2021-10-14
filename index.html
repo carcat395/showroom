@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+      crossorigin="anonymous"
+    />
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script>
+      var carInteraction = false;
+      var interiorView = false;
+      
+      AFRAME.registerComponent('rotation-reader', {
+        tick: function () {
+          // `this.el` is the element.
+          // `object3D` is the three.js object.
+
+          // `rotation` is a three.js Euler using radians. `quaternion` also available.
+          //console.log(this.el.object3D.position);
+        }
+      });
+
+      function OpenModal(){
+        console.log("open modal");
+        var myModal = new bootstrap.Modal(document.getElementById('myModal'), 'static');
+        myModal.show();
+      }
+      
+      function LockMovement(){
+        console.log("lock movement");
+        if(carInteraction == false){
+          carInteraction = true;
+          document.getElementById('camera').setAttribute('wasd-controls-enabled', false);
+          document.getElementById('camera').setAttribute('look-controls-enabled', false);
+        }
+        console.log("car interaction: " + carInteraction);
+      }
+      
+      function UnlockMovement(){
+        console.log("unlock movement");
+        if(carInteraction == true){
+          carInteraction = false;
+          document.getElementById('camera').setAttribute('wasd-controls-enabled', true);
+          document.getElementById('camera').setAttribute('look-controls-enabled', true);
+        }
+        console.log("car interaction: " + carInteraction);
+      }
+      
+      function OpenViewerUI(){
+        if(carInteraction == false){
+          console.log("open car viewer");
+          HideMainUI();
+          document.getElementById('car-viewer-ui').style.display = "block";
+          LockMovement();
+        }
+      }
+      
+      function HideViewerUI(){
+        console.log(document.getElementById('camera').object3D.rotation)
+        console.log("close car viewer");
+        OpenMainUI();
+        document.getElementById('car-viewer-ui').style.display = "none";
+        UnlockMovement();
+      }
+      
+      function HideMainUI(){
+        document.getElementById('main-ui').style.display = "none";
+      }
+      
+      function OpenMainUI(){
+        document.getElementById('main-ui').style.display = "block";
+      }
+      
+      function ChangeColor(entity, e){
+        var model = document.getElementById('car');
+        switch(e){
+          case 1:
+            console.log("change yellow");
+            model.setAttribute('gltf-model', "https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FHoverCar-gold.glb?v=1632726082471");
+            break;
+          case 2:
+            console.log("change red");
+            model.setAttribute('gltf-model', "https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FHoverCar-red.glb?v=1632726082728");
+            break;
+          case 3:
+            console.log("change pink");
+            model.setAttribute('gltf-model', "https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FHoverCar-pink.glb?v=1632726082509");
+            break;
+          default:
+            console.log("change default");
+            model.setAttribute('gltf-model', "https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Fhovercar.glb?v=1631702110809");
+            break;
+        }
+      }
+      
+      <!-- interior view -->
+      var camRotation = new THREE.Vector3();
+      var camPosition = new THREE.Vector3();
+      function OpenInterior(){
+        interiorView = true;
+        var cam = document.getElementById('camera');
+        console.log("cam rotation: " + cam.object3D.rotation.x + " , " + cam.object3D.rotation.y + " , " + cam.object3D.rotation.z);
+        camRotation.set(cam.object3D.rotation.x, cam.object3D.rotation.y, cam.object3D.rotation.z);
+        camPosition.set(cam.object3D.position.x, cam.object3D.position.y, cam.object3D.position.z);
+        console.log("cam rotation: " + camRotation.x + ", " + camRotation.y + ", "  + camRotation.z);
+        console.log("cam rotation: " + camPosition.x + ", " + camPosition.y + ", "  + camPosition.z);
+        cam.object3D.rotation.set(-0.36, 0, 0);
+        cam.object3D.position.set(0, 0, 0);
+        
+        document.getElementById('car').setAttribute('visible', false);
+        document.getElementById('InfoBox').setAttribute('visible', false);
+        document.getElementById('pidio').setAttribute('visible', false);
+        document.getElementById('envronent').setAttribute('visible', false);
+        
+        document.getElementById('camera').setAttribute('look-controls-enabled', true);
+        document.getElementById('bg').setAttribute('src', "https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2F5302589171_560b153e4e_o.jpg?v=1632893712944");
+        document.getElementById('bg').setAttribute('color', "#fff");
+        
+        document.getElementById('interior-ui').style.display = "block";
+        document.getElementById('car-viewer-ui').style.display = "none";
+      }
+      
+      function CloseInterior(){
+        console.log(document.getElementById('camera').object3D.rotation)
+        interiorView = false;
+        var cam = document.getElementById('camera');
+        cam.object3D.rotation.set(camRotation.x, camRotation.y, camRotation.z);
+        cam.object3D.position.set(camPosition.x, camPosition.y, camPosition.z);
+        
+        document.getElementById('car').setAttribute('visible', true);
+        document.getElementById('InfoBox').setAttribute('visible', true);
+        document.getElementById('pidio').setAttribute('visible', true);
+        document.getElementById('envronent').setAttribute('visible', true);
+        
+        document.getElementById('camera').setAttribute('look-controls-enabled', false);
+        document.getElementById('bg').setAttribute('src', "");
+        document.getElementById('bg').setAttribute('color', "#e67e55");
+        
+        document.getElementById('interior-ui').style.display = "none";
+        document.getElementById('car-viewer-ui').style.display = "block";
+      }
+      
+      <!-- components -->
+      AFRAME.registerComponent('info-box', {
+        init: function () {
+          var el = this.el;  // <a-box>
+          console.log("info-box");
+          
+          el.addEventListener('click', function () {
+            console.log("click on box");
+            OpenModal();
+          });
+        } 
+      });
+      
+      AFRAME.registerComponent('car', {
+        init: function(){
+          var el = this.el;
+          
+          el.addEventListener('click', function(){
+            OpenViewerUI();
+          });
+          el.object3D.material
+        }
+      });
+      
+      AFRAME.registerComponent('viewer-controls', {
+        init: function(){
+          var el = this.el;
+          
+          this.xDown = false;
+          this.isTouch = false;
+          
+          el.addEventListener('mousedown', function(e){
+            this.isTouch = true;
+            this.xDown = e.offsetX
+          });
+          
+          el.addEventListener('mouseup', function(e){
+            this.isTouch = false;
+          });
+          
+          /*el.addEventListener('mouseout' function(e){
+            this.isTouch = false;
+          });*/
+          
+          el.addEventListener('mousemove', function(e){
+            if(! this.isTouch || interiorView == true)
+              return;
+            
+            if(carInteraction){
+              var xUp = e.offsetX;
+              var xDiff = this.xDown - xUp;
+              console.log("touch move x: " + xDiff);
+              document.getElementById('car').setAttribute('rotation', {x:(el.getAttribute('rotation').x), y: (el.getAttribute('rotation').y - xDiff/2), z: (el.getAttribute('rotation').z)});
+            }
+          });
+          
+          //this.el.style.display = "none";
+          
+        }
+      });
+    </script>
+    
+  </head>
+  <body>
+    <a-scene vr-mode-ui="enabled: false" viewer-controls>
+      <a-assets>
+        <a-asset-item id="car_model" src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Fhovercar.glb?v=1631702110809"></a-asset-item>
+        <a-asset-item id="environment" src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Fshowroom(carless).glb?v=1633321510246"></a-asset-item>
+        <a-asset-item id="info-box" src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Finfo-box.glb?v=1633323968087"></a-asset-item>
+        <video id="video" autoplay src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FVirtual_Auto_Show_20201119.mp4?v=1632747395029" loop="true"></video>
+        <img id="interior" src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2F5302589171_560b153e4e_o.jpg?v=1632893712944"/>
+        <img id="enerc_button" src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon%20smallerer.png?v=1632289355338">
+      </a-assets>
+      
+      <a-camera id="camera" rotation-reader><a-cursor></a-cursor></a-camera>
+      
+      <!-- lighting -->
+      <a-light type="ambient" color="white" position="0 0 0" intensity="0.25"></a-light>
+      <a-light type="point" color="white" position="-1.03 20.78 -24.19" castShadow="true"></a-light>
+      <a-light type="point" color="white" position="-23.005 10.910 -1.406" castShadow="true"></a-light>
+      
+      <!-- envronent -->
+      <a-entity
+       id="envronent"
+       gltf-model="#environment"
+       position="0 0.25 -20"
+       rotation="0 90 0"
+       shadow="receive: true"
+      ></a-entity>
+      
+      <!-- car -->
+      <a-entity
+       id="car"
+       car
+       gltf-model="#car_model"
+       position="0 1 -10"
+       scale="0.75 0.75 0.75"
+       shadow="cast: true"
+      ></a-entity>
+      
+      <!-- info box -->
+      <a-entity
+        id="InfoBox"
+        info-box
+        gltf-model="#info-box"
+        position="-5.5 0 -12.5"
+        rotation="0 135 0"
+        shadow="cast:true"
+        >
+        <a-image src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FTargetImage.jpg?v=1632734321343"></a-image>
+      </a-entity>
+      
+      <!-- video player -->
+      <a-video id="pidio" src="#video" width="16" height="9" position="0 4.5 -17.5"></a-video>
+      
+      <a-sky id="bg" radius="60" color="#fff"></a-sky>
+      
+      <!-- floor -->
+      <!-- a-cylinder id="ground" radius="32" height="0.1" color="#596278"></a-cylinder -->
+    </a-scene>
+    
+        <!-- Modal -->
+    <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+      <div class="fixed-top d-flex justify-content-end container p-4">
+        <button type="button" class="btn-close btn-close-white btn-lg" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <!-- carousel -->
+            <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FTargetImage.jpg?v=1632734321343" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2FEl4FHfCVgAAq9GK.jfif?v=1632383078133" class="d-block w-100" alt="...">
+                </div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- main ui -->
+    <div id="main-ui">
+      <div class="fixed-bottom d-flex justify-content-end container p-2">
+        <button class="btn btn-default btn-sm">
+          <img style="width:70%"
+               src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon%20smallerer.png?v=1632289355338" onclick="OpenModal()" />
+        </button>
+        <button class="btn btn-default btn-sm">
+          <img style="width:70%"
+               src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon%20smallerer.png?v=1632289355338" onclick="OpenModal()" />
+        </button>
+      </div> 
+    </div>
+    
+    <!-- car viewer -->
+    <div id="car-viewer-ui" style="display:none">
+      <div class="fixed-top d-flex justify-content-end container p-4">
+        <button type="button" class="btn-close btn-close-white btn-lg"  aria-label="Close" onclick="HideViewerUI()"></button>
+      </div>
+      
+      <div class="fixed-bottom container px-0">
+        <div class="row">
+          <div class="col">
+            <button class="btn btn-default btn-sm">
+              <img style="width:75%"
+                   src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon_color1.png?v=1632887928427" onclick="ChangeColor('car', 0)" />
+            </button>
+            <button class="btn btn-default btn-sm">
+              <img style="width:75%"
+                   src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon_color2.png?v=1632887928369" onclick="ChangeColor('car', 1)" />
+            </button>
+            <button class="btn btn-default btn-sm">
+              <img style="width:75%"
+                   src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon_color3.png?v=1632887928369" onclick="ChangeColor('car', 2)" />
+            </button>
+            <button class="btn btn-default btn-sm">
+              <img style="width:75%"
+                   src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon_color4.png?v=1632887928369" onclick="ChangeColor('car', 3)" />
+            </button>
+          </div>
+          <div class="col-2">
+            <a class="btn btn-default btn-sm" 
+               role="button"
+               target="_blank">
+              <img style="width:75%"
+                   src="https://cdn.glitch.com/32b64a02-97c1-4ec7-966f-e3471a413df7%2Ficon%20smallerer.png?v=1632289355338" onClick="OpenInterior()"/>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- interior ui -->
+    <div id="interior-ui" style="display:none">
+      <div class="fixed-top d-flex justify-content-end container p-4" style="display:none">
+    `    <button type="button" class="btn-close btn-close-white btn-lg"  aria-label="Close" onclick="CloseInterior()"></button>
+      </div>
+    </div>
+    
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
